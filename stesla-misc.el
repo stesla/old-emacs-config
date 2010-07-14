@@ -1,6 +1,8 @@
-;;;;
-;;;; MISC
-;;;;
+(when window-system
+  (setq frame-title-format '(buffer-file-name "%f" ("%b")))
+  (tooltip-mode -1)
+  (mouse-wheel-mode t)
+  (blink-cursor-mode -1))
 
 (set-terminal-coding-system 'utf-8)
 (set-keyboard-coding-system 'utf-8)
