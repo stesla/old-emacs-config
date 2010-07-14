@@ -26,10 +26,11 @@
 (if (fboundp 'scroll-bar-mode) (scroll-bar-mode -1))
 
 (setq dotfiles-dir (file-name-directory
-                    (or (buffer-file-name) load-file-name)))
+                    (or (buffer-file-name) load-file-name))
+      vendor-dir (concat dotfiles-dir "vendor/"))
 
 (add-to-list 'load-path dotfiles-dir)
-(add-to-list 'load-path (concat dotfiles-dir "/vendor"))
+(add-to-list 'load-path vendor-dir)
 
 (setq autoload-file (concat dotfiles-dir "loaddefs.el"))
 (setq custom-file (concat dotfiles-dir "custom.el"))
@@ -47,6 +48,7 @@
 (require 'stesla-misc)
 (require 'stesla-bindings)
 (require 'stesla-python)
+(require 'stesla-yasnippet)
 
 (load custom-file 'noerror)
 
