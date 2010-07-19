@@ -42,6 +42,9 @@
 ;; Highlight matching parentheses when the point is on them.
 (show-paren-mode 1)
 
+;; Show the column number in the modeline
+(column-number-mode 1)
+
 ;; ido-mode is like magic pixie dust!
 (when (> emacs-major-version 21)
   (ido-mode t)
