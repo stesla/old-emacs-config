@@ -26,11 +26,9 @@
 (if (fboundp 'scroll-bar-mode) (scroll-bar-mode -1))
 
 (setq dotfiles-dir (file-name-directory
-                    (or (buffer-file-name) load-file-name))
-      vendor-dir (concat dotfiles-dir "vendor/"))
+                    (or (buffer-file-name) load-file-name)))
 
 (add-to-list 'load-path dotfiles-dir)
-(add-to-list 'load-path vendor-dir)
 
 (setq autoload-file (concat dotfiles-dir "loaddefs.el"))
 (setq custom-file (concat dotfiles-dir "custom.el"))
