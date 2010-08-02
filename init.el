@@ -47,6 +47,7 @@
 (require 'stesla-bindings)
 (require 'stesla-python)
 (require 'stesla-yasnippet)
+(require 'stesla-auto)
 
 (load custom-file 'noerror)
 
