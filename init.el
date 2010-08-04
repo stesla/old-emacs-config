@@ -1,24 +1,23 @@
 ;;; init.el -- Emacs Initialization
 
-;; Copyright (C) 2009-2010 Samuel Tesla
+;; Copyright (C) 2010 Samuel Tesla
 
 ;; Author: Samuel Tesla <samuel@alieniloquent.com>
 
-;; This file is free software; you can redistribute it and/or modify it under
-;; the terms of the GNU General Public License as published by the Free
-;; Software Foundation; either version 2, or (at your option) any later
-;; version.
-;;
-;; This file is distributed in the hope that it will be useful, but WITHOUT ANY
-;; WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-;; FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
-;; details.
-;;
-;; You should have received a copy of the GNU General Public License along with
-;; GNU Emacs; type C-h C-c inside GNU Emacs to view the license.  Otherwise,
-;; write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
-;;;;
+;; This program is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+;;; Code:
 
 ;; Turn off mouse interface early in startup to avoid momentary display
 (if (fboundp 'menu-bar-mode) (menu-bar-mode -1))
