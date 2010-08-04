@@ -48,6 +48,7 @@
 (require 'stesla-python)
 (require 'stesla-yasnippet)
 (require 'stesla-auto)
+(require 'stesla-elisp)
 
 (load custom-file 'noerror)
 
