@@ -51,6 +51,7 @@
 (defun muon-open-connection (buffer world)
   (make-network-process :name (concat "muon " (muon-world-name world))
                         :buffer buffer
+                        :coding '(no-conversion . no-conversion)
                         :filter 'muon-insertion-filter
                         :host (muon-world-host world)
                         :service (muon-world-port world)))
@@ -66,18 +67,50 @@
         (set-marker (process-mark proc) (point)))
       (if moving (goto-char (process-mark proc))))))
 
+(defconst muon-se 240)
+(defconst muon-nop 241)
+(defconst muon-dm 242)
+(defconst muon-brk 243)
+(defconst muon-ip 244)
+(defconst muon-ao 245)
+(defconst muon-ayt 246)
+(defconst muon-ec 247)
+(defconst muon-el 248)
+(defconst muon-ga 249)
+(defconst muon-sb 250)
+(defconst muon-will 251)
+(defconst muon-wont 252)
+(defconst muon-do 253)
+(defconst muon-dont 254)
+(defconst muon-iac 255)
+
 (defun muon-insert (proc byte)
-  (cond
-   ((process-get proc 'iac)
-    (if (eq 255 byte)
-        (insert 255)
-      (process-put proc 'iac t)))
-   ((process-get proc 'cr)
-    (if (eq ?\n byte)
-        (insert ?\n)
-      (process-put proc 'cr t)))
-   (t
-    (insert byte))))
+  (let ((iacp (process-get proc 'iac))
+        (crp (process-get proc 'cr)))
+    (cond
+     (iacp
+      (cond
+       ((or (eq muon-will byte)
+            (eq muon-wont byte)
+            (eq muon-do byte)
+            (eq muon-dont byte))
+        nil)
+       ((eq muon-iac byte)
+        (insert muon-iac)
+        (process-put proc 'iac nil))
+       (t
+        (process-put proc 'iac nil))))
+     (crp
+      (unless (eq ?\n byte)
+        (insert byte))
+      (process-put proc 'cr nil))
+     ((eq muon-iac byte)
+      (process-put proc 'iac t))
+     ((eq ?\r byte)
+      (insert ?\n)
+      (process-put proc 'cr t))
+     (t
+      (insert byte)))))
 
 (provide 'muon)
 ;;; muon.el ends here
