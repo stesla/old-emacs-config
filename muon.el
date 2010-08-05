@@ -24,8 +24,11 @@
 
 ;;; Code:
 
+(eval-when-compile
+  (require 'cl))
+
 (defvar muon-worlds
-  '((gateway . (:host "connect.mu-gateway.net" :port 6700))))
+  '(("gateway" . (:host "connect.mu-gateway.net" :port 6700))))
 
 (defun muon-get-world (world-name)
   (assoc world-name muon-worlds))
@@ -38,6 +41,43 @@
 
 (defun muon-world-port (world)
   (plist-get (cdr world) :port))
+
+(defun muon (world-name)
+  (interactive "sWorld: ")
+  (let ((buffer (generate-new-buffer "*muon*")))
+    (muon-open-connection buffer (muon-get-world world-name))
+    (set-window-buffer (selected-window) buffer)))
+
+(defun muon-open-connection (buffer world)
+  (make-network-process :name (concat "muon " (muon-world-name world))
+                        :buffer buffer
+                        :filter 'muon-insertion-filter
+                        :host (muon-world-host world)
+                        :service (muon-world-port world)))
+
+(defun muon-insertion-filter (proc string)
+  (with-current-buffer (process-buffer proc)
+    (let ((moving (= (point) (process-mark proc))))
+      (save-excursion
+        ;; Insert the text, advancing the process marker.
+        (goto-char (process-mark proc))
+        (loop for x across string
+              do (muon-insert proc x))
+        (set-marker (process-mark proc) (point)))
+      (if moving (goto-char (process-mark proc))))))
+
+(defun muon-insert (proc byte)
+  (cond
+   ((process-get proc 'iac)
+    (if (eq 255 byte)
+        (insert 255)
+      (process-put proc 'iac t)))
+   ((process-get proc 'cr)
+    (if (eq ?\n byte)
+        (insert ?\n)
+      (process-put proc 'cr t)))
+   (t
+    (insert byte))))
 
 (provide 'muon)
 ;;; muon.el ends here
