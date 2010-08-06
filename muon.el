@@ -115,6 +115,11 @@
 (defun muon-insert (byte)
   (insert byte))
 
+(defun muon-send-input-line (line)
+  (let ((process (get-buffer-process (current-buffer)))
+        (telnet-line line))
+    (process-send-string telnet-line)))
+
 (define-derived-mode muon-mode
   text-mode "Muon"
   "Major mode for MUSHing.
