@@ -65,7 +65,7 @@
         ;; Insert the text, advancing the process marker.
         (goto-char (process-mark proc))
         (loop for x across string
-              do (muon-insert proc x))
+              do (muon-telnet-process proc x))
         (set-marker (process-mark proc) (point)))
       (if moving (goto-char (process-mark proc))))))
 
@@ -86,7 +86,7 @@
 (defconst muon-dont 254)
 (defconst muon-iac 255)
 
-(defun muon-insert (proc byte)
+(defun muon-telnet-process (proc byte)
   (cond
    ((process-get proc 'iac)
     (cond
@@ -96,21 +96,24 @@
           (eq muon-dont byte))
       nil)
      ((eq muon-iac byte)
-      (insert muon-iac)
+      (muon-insert muon-iac)
       (process-put proc 'iac nil))
      (t
       (process-put proc 'iac nil))))
    ((process-get proc 'cr)
     (unless (eq ?\n byte)
-      (insert byte))
+      (muon-insert byte))
     (process-put proc 'cr nil))
    ((eq muon-iac byte)
     (process-put proc 'iac t))
    ((eq ?\r byte)
-    (insert ?\n)
+    (muon-insert ?\n)
     (process-put proc 'cr t))
    (t
-    (insert byte))))
+    (muon-insert byte))))
+
+(defun muon-insert (byte)
+  (insert byte))
 
 (define-derived-mode muon-mode
   text-mode "Muon"
