@@ -85,32 +85,30 @@
 (defconst muon-iac 255)
 
 (defun muon-insert (proc byte)
-  (let ((iacp (process-get proc 'iac))
-        (crp (process-get proc 'cr)))
+  (cond
+   ((process-get proc 'iac)
     (cond
-     (iacp
-      (cond
-       ((or (eq muon-will byte)
-            (eq muon-wont byte)
-            (eq muon-do byte)
-            (eq muon-dont byte))
-        nil)
-       ((eq muon-iac byte)
-        (insert muon-iac)
-        (process-put proc 'iac nil))
-       (t
-        (process-put proc 'iac nil))))
-     (crp
-      (unless (eq ?\n byte)
-        (insert byte))
-      (process-put proc 'cr nil))
+     ((or (eq muon-will byte)
+          (eq muon-wont byte)
+          (eq muon-do byte)
+          (eq muon-dont byte))
+      nil)
      ((eq muon-iac byte)
-      (process-put proc 'iac t))
-     ((eq ?\r byte)
-      (insert ?\n)
-      (process-put proc 'cr t))
+      (insert muon-iac)
+      (process-put proc 'iac nil))
      (t
-      (insert byte)))))
+      (process-put proc 'iac nil))))
+   ((process-get proc 'cr)
+    (unless (eq ?\n byte)
+      (insert byte))
+    (process-put proc 'cr nil))
+   ((eq muon-iac byte)
+    (process-put proc 'iac t))
+   ((eq ?\r byte)
+    (insert ?\n)
+    (process-put proc 'cr t))
+   (t
+    (insert byte))))
 
 (provide 'muon)
 ;;; muon.el ends here
