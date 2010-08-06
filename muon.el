@@ -46,7 +46,9 @@
   (interactive "sWorld: ")
   (let ((buffer (generate-new-buffer "*muon*")))
     (muon-open-connection buffer (muon-get-world world-name))
-    (set-window-buffer (selected-window) buffer)))
+    (set-buffer buffer)
+    (muon-mode)
+    (switch-to-buffer buffer)))
 
 (defun muon-open-connection (buffer world)
   (make-network-process :name (concat "muon " (muon-world-name world))
@@ -109,6 +111,11 @@
     (process-put proc 'cr t))
    (t
     (insert byte))))
+
+(define-derived-mode muon-mode
+  text-mode "Muon"
+  "Major mode for MUSHing.
+\\{muon-mode-map}")
 
 (provide 'muon)
 ;;; muon.el ends here
