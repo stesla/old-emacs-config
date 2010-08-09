@@ -63,11 +63,12 @@
     (let ((moving (= (point) (process-mark proc))))
       (save-excursion
         ;; Insert the text, advancing the process marker.
-        (goto-char (process-mark proc))
-        (loop for x across string
-              do (muon-telnet-process proc x))
-        (set-marker (process-mark proc) (point)))
-      (if moving (goto-char (process-mark proc))))))
+        (let ((inhibit-read-only t))
+          (goto-char (process-mark proc))
+          (loop for x across string
+                do (muon-telnet-process proc x))
+          (set-marker (process-mark proc) (point)))
+        (if moving (goto-char (process-mark proc)))))))
 
 (defconst muon-se 240)
 (defconst muon-nop 241)
@@ -121,9 +122,10 @@
     (process-send-string telnet-line)))
 
 (define-derived-mode muon-mode
-  text-mode "Muon"
+  nil "Muon"
   "Major mode for MUSHing.
-\\{muon-mode-map}")
+\\{muon-mode-map}"
+  (setq buffer-read-only t))
 
 (provide 'muon)
 ;;; muon.el ends here
