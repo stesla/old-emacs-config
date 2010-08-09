@@ -47,7 +47,7 @@
 
 (mapc (lambda (mode-hook)
         (add-hook mode-hook 'stesla-hide-trailing-whitespace))
-      '(Buffer-menu-mode-hook text-mode-hook
+      '(Buffer-menu-mode-hook text-mode-hook muon-mode-hook
         custom-mode-hook term-mode-hook Info-mode-hook
         comint-mode-hook buffer-menu-mode-hook apropos-mode-hook
         tooltip-show-hook gnus-article-mode-hook mail-mode-hook
