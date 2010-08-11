@@ -128,7 +128,7 @@
   (incf muon-input-pos)
   (cond
    ((eq ?\n byte)
-    (insert (substring muon-input-data 0 muon-input-pos))
+    (muon-display-line (substring muon-input-data 0 muon-input-pos))
     (setq muon-input-pos 0))
    ((eq muon-input-pos (length muon-input-data))
     (setq muon-input-data (concat muon-input-data (make-empty-input-data))))))
@@ -136,10 +136,15 @@
 (defun make-empty-input-data ()
   (make-string 1024 0))
 
+(defun muon-display-line (str)
+  (let ((begin (point)))
+    (insert str)
+    (ansi-color-apply-on-region begin (point))))
+
 (defun muon-send-input-line (line)
   (let ((process (get-buffer-process (current-buffer)))
         (telnet-line line))
-    (process-send-string telnet-line)))
+    (process-send-string process telnet-line)))
 
 (define-derived-mode muon-mode
   nil "Muon"
