@@ -30,13 +30,22 @@
 (defvar muon-worlds
   '(("gateway" . (:host "connect.mu-gateway.net" :port 6700))))
 
-(defvar muon-input-data ""
+(defvar muon-prompt "MU> "
+  "The string displayed as the input prompt in Muon buffers")
+
+(defvar muon-input-data nil
   "A string used to store characters until a newline is encountered.")
 (make-variable-buffer-local 'muon-input-buffer)
 
-(defvar muon-input-pos 0
+(defvar muon-input-pos nil
   "The index into MUON-INPUT-DATA where the next character should be placed.")
 (make-variable-buffer-local 'muon-input-pos)
+
+(defvar muon-insert-marker nil
+  "A marker to tell Muon where to insert text received from the server.")
+
+(defvar muon-input-marker nil
+  "A marker to tell Muon where user input should go.")
 
 (defun muon-get-world (world-name)
   (assoc world-name muon-worlds))
@@ -57,8 +66,22 @@
     (set-buffer buffer)
     (muon-mode)
     (visual-line-mode)
+
+    (setq muon-insert-marker (make-marker))
+    (setq muon-input-marker (make-marker))
+
     (setq muon-input-data (make-empty-input-data))
     (setq muon-input-pos 0)
+
+    (goto-char (point-max))
+    (forward-line 0)
+    (insert "\n")
+
+    (set-marker muon-insert-marker (point))
+
+    (muon-display-prompt)
+    (goto-char (point-max))
+
     (switch-to-buffer buffer)))
 
 (defun muon-open-connection (buffer world)
@@ -137,21 +160,60 @@
 (defun make-empty-input-data ()
   (make-string 1024 0))
 
-(defun muon-display-line (str)
-  (let ((begin (point)))
-    (insert str)
-    (ansi-color-apply-on-region begin (point))))
+(defun muon-display-line (string)
+  (when string
+    (save-excursion
+      ;; consider setting buffer here
+      (let ((insert-position (or (marker-position muon-insert-marker)
+                                                  (point-max))))
+        (let ((buffer-undo-list t)
+              (inhibit-read-only t))
+          (save-restriction
+            (widen)
+            (goto-char insert-position)
+            (insert-before-markers string)
+            (save-restriction
+              (narrow-to-region insert-position (point))
+              (ansi-color-apply-on-region (point-min) (point-max))
+
+              ;; Make read only
+              (put-text-property (point-min) (point-max) 'read-only t)
+              (put-text-property (point-min) (point-max) 'front-sticky t)
+              (put-text-property (point-min) (point-max) 'rear-nonsticky t))))))))
 
 (defun muon-send-input-line (line)
   (let ((process (get-buffer-process (current-buffer)))
         (telnet-line line))
     (process-send-string process telnet-line)))
 
+(defun muon-display-prompt (&optional buffer pos)
+  (let* ((prompt muon-prompt)
+         (l (length prompt))
+         (ob (current-buffer)))
+
+    (save-excursion
+      (setq pos (or pos (point)))
+      (goto-char pos)
+      (when (> l 0)
+        (setq prompt (propertize prompt
+                                 'rear-nonsticky t
+                                 'muon-prompt t
+                                 'front-sticky t
+                                 'read-only 't))
+        (insert prompt))
+
+      (set-marker muon-input-marker (point)))
+
+    (when (or (not pos) (<= (point) pos))
+      (forward-char l))
+
+    (setq buffer-undo-list nil)
+    (set-buffer ob)))
+
 (define-derived-mode muon-mode
   nil "Muon"
   "Major mode for MUSHing.
-\\{muon-mode-map}"
-  (setq buffer-read-only t))
+\\{muon-mode-map}")
 
 (provide 'muon)
 ;;; muon.el ends here
