@@ -56,6 +56,7 @@
     (muon-open-connection buffer (muon-get-world world-name))
     (set-buffer buffer)
     (muon-mode)
+    (visual-line-mode)
     (setq muon-input-data (make-empty-input-data))
     (setq muon-input-pos 0)
     (switch-to-buffer buffer)))
