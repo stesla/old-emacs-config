@@ -30,8 +30,16 @@
 (defvar muon-worlds
   '(("gateway" . (:host "connect.mu-gateway.net" :port 6700))))
 
-(defvar muon-prompt "MU> "
+(defvar muon-prompt "MU>"
   "The string displayed as the input prompt in Muon buffers")
+
+(defun muon-prompt ()
+  (let ((prompt (if (functionp muon-prompt)
+                    (funcall muon-prompt)
+                  muon-prompt)))
+    (if (> (length prompt) 0)
+        (concat prompt " ")
+      prompt)))
 
 (defvar muon-insert-buf nil
   "A string used to store characters until a newline is encountered.")
@@ -46,6 +54,14 @@
 
 (defvar muon-input-marker nil
   "A marker to tell Muon where user input starts.")
+
+(defgroup muon-faces nil
+  "Faces for Muon")
+
+(defface muon-prompt-face
+  '((t (:bold t :foreground "Black" :background "lightBlue2")))
+  "Muon face used for the prompt."
+  :group 'muon-faces)
 
 (defun muon-get-world (world-name)
   (assoc world-name muon-worlds))
@@ -191,7 +207,7 @@
     (process-send-string process telnet-line)))
 
 (defun muon-display-prompt (&optional buffer pos)
-  (let* ((prompt muon-prompt)
+  (let* ((prompt (muon-prompt))
          (l (length prompt))
          (ob (current-buffer)))
 
@@ -204,6 +220,9 @@
                                  'muon-prompt t
                                  'front-sticky t
                                  'read-only 't))
+        (put-text-property 0 (1- (length prompt))
+                           'face 'erc-prompt-face
+                           prompt)
         (insert prompt))
 
       (set-marker muon-input-marker (point)))
