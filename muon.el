@@ -33,19 +33,19 @@
 (defvar muon-prompt "MU> "
   "The string displayed as the input prompt in Muon buffers")
 
-(defvar muon-input-data nil
+(defvar muon-insert-buf nil
   "A string used to store characters until a newline is encountered.")
-(make-variable-buffer-local 'muon-input-buffer)
+(make-variable-buffer-local 'muon-insert-buf)
 
-(defvar muon-input-pos nil
-  "The index into MUON-INPUT-DATA where the next character should be placed.")
-(make-variable-buffer-local 'muon-input-pos)
+(defvar muon-insert-buf-pos nil
+  "The index into MUON-INSERT-BUF where the next character should be placed.")
+(make-variable-buffer-local 'muon-insert-buf-pos)
 
 (defvar muon-insert-marker nil
   "A marker to tell Muon where to insert text received from the server.")
 
 (defvar muon-input-marker nil
-  "A marker to tell Muon where user input should go.")
+  "A marker to tell Muon where user input starts.")
 
 (defun muon-get-world (world-name)
   (assoc world-name muon-worlds))
@@ -64,15 +64,20 @@
   (let ((buffer (generate-new-buffer "*muon*")))
     (muon-open-connection buffer (muon-get-world world-name))
     (set-buffer buffer)
+
+    ;; Set modes
     (muon-mode)
     (visual-line-mode)
 
+    ;; Initialize variables
+    (setq muon-insert-buf (make-empty-input-data))
+    (setq muon-insert-buf-pos 0)
     (setq muon-insert-marker (make-marker))
     (setq muon-input-marker (make-marker))
 
-    (setq muon-input-data (make-empty-input-data))
-    (setq muon-input-pos 0)
-
+    ;; I'm unsure *why* but if I don't put this in, the READ-ONLY
+    ;; property on the prompt causes KILL-BUFFER to signal a
+    ;; TEXT-READ-ONLY error the first time I call it.
     (goto-char (point-max))
     (forward-line 0)
     (insert "\n")
@@ -80,7 +85,6 @@
     (set-marker muon-insert-marker (point))
 
     (muon-display-prompt)
-    (goto-char (point-max))
 
     (switch-to-buffer buffer)))
 
@@ -148,14 +152,14 @@
     (muon-insert byte))))
 
 (defun muon-insert (byte)
-  (aset muon-input-data muon-input-pos byte)
-  (incf muon-input-pos)
+  (aset muon-insert-buf muon-insert-buf-pos byte)
+  (incf muon-insert-buf-pos)
   (cond
    ((eq ?\n byte)
-    (muon-display-line (substring muon-input-data 0 muon-input-pos))
-    (setq muon-input-pos 0))
-   ((eq muon-input-pos (length muon-input-data))
-    (setq muon-input-data (concat muon-input-data (make-empty-input-data))))))
+    (muon-display-line (substring muon-insert-buf 0 muon-insert-buf-pos))
+    (setq muon-insert-buf-pos 0))
+   ((eq muon-insert-buf-pos (length muon-insert-buf))
+    (setq muon-insert-buf (concat muon-insert-buf (make-empty-input-data))))))
 
 (defun make-empty-input-data ()
   (make-string 1024 0))
