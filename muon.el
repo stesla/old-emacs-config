@@ -30,6 +30,14 @@
 (defvar muon-worlds
   '(("gateway" . (:host "connect.mu-gateway.net" :port 6700))))
 
+(defvar muon-input-data ""
+  "A string used to store characters until a newline is encountered.")
+(make-variable-buffer-local 'muon-input-buffer)
+
+(defvar muon-input-pos 0
+  "The index into MUON-INPUT-DATA where the next character should be placed.")
+(make-variable-buffer-local 'muon-input-pos)
+
 (defun muon-get-world (world-name)
   (assoc world-name muon-worlds))
 
@@ -48,6 +56,8 @@
     (muon-open-connection buffer (muon-get-world world-name))
     (set-buffer buffer)
     (muon-mode)
+    (setq muon-input-data (make-empty-input-data))
+    (setq muon-input-pos 0)
     (switch-to-buffer buffer)))
 
 (defun muon-open-connection (buffer world)
@@ -114,7 +124,17 @@
     (muon-insert byte))))
 
 (defun muon-insert (byte)
-  (insert byte))
+  (aset muon-input-data muon-input-pos byte)
+  (incf muon-input-pos)
+  (cond
+   ((eq ?\n byte)
+    (insert (substring muon-input-data 0 muon-input-pos))
+    (setq muon-input-pos 0))
+   ((eq muon-input-pos (length muon-input-data))
+    (setq muon-input-data (concat muon-input-data (make-empty-input-data))))))
+
+(defun make-empty-input-data ()
+  (make-string 1024 0))
 
 (defun muon-send-input-line (line)
   (let ((process (get-buffer-process (current-buffer)))
