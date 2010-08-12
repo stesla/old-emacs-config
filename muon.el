@@ -54,7 +54,7 @@
 ;;;; Internal Variables
 
 (defvar muon-server-process nil
-  "The sever process for this Muon buffer.")
+  "The server process for this Muon buffer.")
 (make-variable-buffer-local 'muon-server-process)
 
 (defvar muon-insert-bufstr nil
