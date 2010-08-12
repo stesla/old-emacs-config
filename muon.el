@@ -27,6 +27,8 @@
 (eval-when-compile
   (require 'cl))
 
+;;;; User Settings
+
 (defvar muon-worlds
   '(("gateway" . (:host "connect.mu-gateway.net" :port 6700))))
 
@@ -40,6 +42,16 @@
     (if (> (length prompt) 0)
         (concat prompt " ")
       prompt)))
+
+(defgroup muon-faces nil
+  "Faces for Muon")
+
+(defface muon-prompt-face
+  '((t (:bold t :foreground "Black" :background "lightBlue2")))
+  "Muon face used for the prompt."
+  :group 'muon-faces)
+
+;;;; Internal Variables
 
 (defvar muon-server-process nil
   "The sever process for this Muon buffer.")
@@ -59,25 +71,17 @@
 (defvar muon-input-marker nil
   "A marker to tell Muon where user input starts.")
 
-(defgroup muon-faces nil
-  "Faces for Muon")
+;;;; Interactive functions
 
-(defface muon-prompt-face
-  '((t (:bold t :foreground "Black" :background "lightBlue2")))
-  "Muon face used for the prompt."
-  :group 'muon-faces)
+(define-derived-mode muon-mode
+  nil "Muon"
+  "Major mode for MUSHing.
+\\{muon-mode-map}")
 
-(defun muon-get-world (world-name)
-  (assoc world-name muon-worlds))
-
-(defun muon-world-name (world)
-  (car world))
-
-(defun muon-world-host (world)
-  (plist-get (cdr world) :host))
-
-(defun muon-world-port (world)
-  (plist-get (cdr world) :port))
+(define-key muon-mode-map "\C-m" 'muon-send-current-line)
+(define-key muon-mode-map "\C-a" 'muon-bol)
+(define-key muon-mode-map [home] 'muon-bol)
+(define-key muon-mode-map "\C-c\C-a" 'muon-bol)
 
 (defun muon (world-name)
   (interactive "sWorld: ")
@@ -109,6 +113,119 @@
 
     (switch-to-buffer buffer)))
 
+(defun muon-bol ()
+  (interactive)
+  (forward-line 0)
+  (when (get-text-property (point) 'muon-prompt)
+    (goto-char muon-input-marker))
+  (point))
+
+(defun muon-kill-input ()
+  (interactive)
+  (when (and (muon-bol)
+             (/= (point) (point-max)))
+    (kill-line)))
+
+;;;; Input/Output
+
+(defun muon-display-line (string)
+  (when string
+    (save-excursion
+      ;; consider setting buffer here
+      (let ((insert-position (or (marker-position muon-insert-marker)
+                                                  (point-max))))
+        (let ((buffer-undo-list t)
+              (inhibit-read-only t))
+          (save-restriction
+            (widen)
+            (goto-char insert-position)
+            (insert-before-markers string)
+            (save-restriction
+              (narrow-to-region insert-position (point))
+              (ansi-color-apply-on-region (point-min) (point-max))
+
+              ;; Make read only
+              (put-text-property (point-min) (point-max) 'read-only t)
+              (put-text-property (point-min) (point-max) 'front-sticky t)
+              (put-text-property (point-min) (point-max) 'rear-nonsticky t))))))))
+
+(defun muon-send-input-line (line)
+  (let ((process (get-buffer-process (current-buffer)))
+        (telnet-line (concat line "\r\n")))
+    (process-send-string process telnet-line)))
+
+(defun muon-display-prompt (&optional buffer pos)
+  (let* ((prompt (muon-prompt))
+         (l (length prompt))
+         (ob (current-buffer)))
+
+    (save-excursion
+      (setq pos (or pos (point)))
+      (goto-char pos)
+      (when (> l 0)
+        (setq prompt (propertize prompt
+                                 'rear-nonsticky t
+                                 'muon-prompt t
+                                 'front-sticky t
+                                 'read-only 't))
+        (put-text-property 0 (1- (length prompt))
+                           'face 'muon-prompt-face
+                           prompt)
+        (insert prompt))
+
+      (set-marker muon-input-marker (point)))
+
+    (when (or (not pos) (<= (point) pos))
+      (forward-char l))
+
+    (setq buffer-undo-list nil)
+    (set-buffer ob)))
+
+(defun muon-beg-of-input-line ()
+  (marker-position muon-insert-marker))
+
+(defun muon-end-of-input-line ()
+  (point-max))
+
+(defun muon-send-current-line ()
+  (interactive)
+  (save-restriction
+    (widen)
+    (if (< (point) (muon-beg-of-input-line))
+        (muon-error "Point is not in the input area")
+      (let ((inhibit-read-only t)
+            (str (muon-user-input))
+            (old-buf (current-buffer)))
+
+        (delete-region (muon-beg-of-input-line)
+                       (muon-end-of-input-line))
+
+        (unwind-protect
+            (muon-send-input-line str)
+          (with-current-buffer old-buf
+            (save-restriction
+              (widen)
+              (goto-char (point-max))
+              (when (processp muon-server-process)
+                (set-marker (process-mark muon-server-process) (point)))
+              (set-marker muon-insert-marker (point))
+              (let ((buffer-modified (buffer-modified-p)))
+                (muon-display-prompt)
+                (set-buffer-modified-p buffer-modified)))))))))
+
+(defun muon-user-input ()
+  (buffer-substring-no-properties
+   muon-input-marker
+   (muon-end-of-input-line)))
+
+(defun muon-error (&rest args)
+  (if debug-on-error
+      (apply #'error args)
+    (apply #'message args)
+    (beep)))
+
+;;;; Networking
+
 (defun muon-open-connection (buffer world)
   (make-network-process :name (concat "muon " (muon-world-name world))
                         :buffer buffer
@@ -116,6 +233,7 @@
                         :filter 'muon-insertion-filter
                         :host (muon-world-host world)
                         :service (muon-world-port world)))
+
 
 (defun muon-insertion-filter (proc string)
   (with-current-buffer (process-buffer proc)
@@ -185,124 +303,19 @@
 (defun make-empty-input-data ()
   (make-string 1024 0))
 
-(defun muon-display-line (string)
-  (when string
-    (save-excursion
-      ;; consider setting buffer here
-      (let ((insert-position (or (marker-position muon-insert-marker)
-                                                  (point-max))))
-        (let ((buffer-undo-list t)
-              (inhibit-read-only t))
-          (save-restriction
-            (widen)
-            (goto-char insert-position)
-            (insert-before-markers string)
-            (save-restriction
-              (narrow-to-region insert-position (point))
-              (ansi-color-apply-on-region (point-min) (point-max))
+;;;; World / Profile Functions
 
-              ;; Make read only
-              (put-text-property (point-min) (point-max) 'read-only t)
-              (put-text-property (point-min) (point-max) 'front-sticky t)
-              (put-text-property (point-min) (point-max) 'rear-nonsticky t))))))))
+(defun muon-get-world (world-name)
+  (assoc world-name muon-worlds))
 
-(defun muon-send-input-line (line)
-  (let ((process (get-buffer-process (current-buffer)))
-        (telnet-line (concat line "\r\n")))
-    (process-send-string process telnet-line)))
+(defun muon-world-name (world)
+  (car world))
 
-(defun muon-display-prompt (&optional buffer pos)
-  (let* ((prompt (muon-prompt))
-         (l (length prompt))
-         (ob (current-buffer)))
+(defun muon-world-host (world)
+  (plist-get (cdr world) :host))
 
-    (save-excursion
-      (setq pos (or pos (point)))
-      (goto-char pos)
-      (when (> l 0)
-        (setq prompt (propertize prompt
-                                 'rear-nonsticky t
-                                 'muon-prompt t
-                                 'front-sticky t
-                                 'read-only 't))
-        (put-text-property 0 (1- (length prompt))
-                           'face 'muon-prompt-face
-                           prompt)
-        (insert prompt))
-
-      (set-marker muon-input-marker (point)))
-
-    (when (or (not pos) (<= (point) pos))
-      (forward-char l))
-
-    (setq buffer-undo-list nil)
-    (set-buffer ob)))
-
-(defun muon-bol ()
-  (interactive)
-  (forward-line 0)
-  (when (get-text-property (point) 'muon-prompt)
-    (goto-char muon-input-marker))
-  (point))
-
-(defun muon-kill-input ()
-  (interactive)
-  (when (and (muon-bol)
-             (/= (point) (point-max)))
-    (kill-line)))
-
-(defun muon-beg-of-input-line ()
-  (marker-position muon-insert-marker))
-
-(defun muon-end-of-input-line ()
-  (point-max))
-
-(defun muon-send-current-line ()
-  (interactive)
-  (save-restriction
-    (widen)
-    (if (< (point) (muon-beg-of-input-line))
-        (muon-error "Point is not in the input area")
-      (let ((inhibit-read-only t)
-            (str (muon-user-input))
-            (old-buf (current-buffer)))
-
-        (delete-region (muon-beg-of-input-line)
-                       (muon-end-of-input-line))
-
-        (unwind-protect
-            (muon-send-input-line str)
-          (with-current-buffer old-buf
-            (save-restriction
-              (widen)
-              (goto-char (point-max))
-              (when (processp muon-server-process)
-                (set-marker (process-mark muon-server-process) (point)))
-              (set-marker muon-insert-marker (point))
-              (let ((buffer-modified (buffer-modified-p)))
-                (muon-display-prompt)
-                (set-buffer-modified-p buffer-modified)))))))))
-
-(defun muon-user-input ()
-  (buffer-substring-no-properties
-   muon-input-marker
-   (muon-end-of-input-line)))
-
-(defun muon-error (&rest args)
-  (if debug-on-error
-      (apply #'error args)
-    (apply #'message args)
-    (beep)))
-
-(define-derived-mode muon-mode
-  nil "Muon"
-  "Major mode for MUSHing.
-\\{muon-mode-map}")
-
-(define-key muon-mode-map "\C-m" 'muon-send-current-line)
-(define-key muon-mode-map "\C-a" 'muon-bol)
-(define-key muon-mode-map [home] 'muon-bol)
-(define-key muon-mode-map "\C-c\C-a" 'muon-bol)
+(defun muon-world-port (world)
+  (plist-get (cdr world) :port))
 
 (provide 'muon)
 ;;; muon.el ends here
