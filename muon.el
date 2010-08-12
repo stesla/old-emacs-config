@@ -67,9 +67,11 @@
 
 (defvar muon-insert-marker nil
   "A marker to tell Muon where to insert text received from the server.")
+(make-variable-buffer-local 'muon-insert-marker)
 
 (defvar muon-input-marker nil
   "A marker to tell Muon where user input starts.")
+(make-variable-buffer-local 'muon-input-marker)
 
 ;;;; Interactive functions
 
