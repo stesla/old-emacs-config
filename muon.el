@@ -57,13 +57,13 @@
   "The sever process for this Muon buffer.")
 (make-variable-buffer-local 'muon-server-process)
 
-(defvar muon-insert-buf nil
+(defvar muon-insert-bufstr nil
   "A string used to store characters until a newline is encountered.")
-(make-variable-buffer-local 'muon-insert-buf)
+(make-variable-buffer-local 'muon-insert-bufstr)
 
-(defvar muon-insert-buf-pos nil
-  "The index into MUON-INSERT-BUF where the next character should be placed.")
-(make-variable-buffer-local 'muon-insert-buf-pos)
+(defvar muon-insert-bufstr-pos nil
+  "The index into MUON-INSERT-BUFSTR where the next character should be placed.")
+(make-variable-buffer-local 'muon-insert-bufstr-pos)
 
 (defvar muon-insert-marker nil
   "A marker to tell Muon where to insert text received from the server.")
@@ -95,8 +95,8 @@
 
     ;; Initialize variables
     (setq muon-server-process process)
-    (setq muon-insert-buf (make-empty-input-data))
-    (setq muon-insert-buf-pos 0)
+    (setq muon-insert-bufstr (make-bufstr))
+    (setq muon-insert-bufstr-pos 0)
     (setq muon-insert-marker (make-marker))
     (setq muon-input-marker (make-marker))
 
@@ -291,16 +291,16 @@
     (muon-insert byte))))
 
 (defun muon-insert (byte)
-  (aset muon-insert-buf muon-insert-buf-pos byte)
-  (incf muon-insert-buf-pos)
+  (aset muon-insert-bufstr muon-insert-bufstr-pos byte)
+  (incf muon-insert-bufstr-pos)
   (cond
    ((eq ?\n byte)
-    (muon-display-line (substring muon-insert-buf 0 muon-insert-buf-pos))
-    (setq muon-insert-buf-pos 0))
-   ((eq muon-insert-buf-pos (length muon-insert-buf))
-    (setq muon-insert-buf (concat muon-insert-buf (make-empty-input-data))))))
+    (muon-display-line (substring muon-insert-bufstr 0 muon-insert-bufstr-pos))
+    (setq muon-insert-bufstr-pos 0))
+   ((eq muon-insert-bufstr-pos (length muon-insert-bufstr))
+    (setq muon-insert-bufstr (concat muon-insert-bufstr (make-bufstr))))))
 
-(defun make-empty-input-data ()
+(defun make-bufstr ()
   (make-string 1024 0))
 
 ;;;; World / Profile Functions
