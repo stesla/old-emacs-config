@@ -29,8 +29,17 @@
 
 ;;;; User Settings
 
-(defvar muon-worlds
-  '(("gateway" . (:host "connect.mu-gateway.net" :port 6700))))
+(defvar muon-worlds nil
+  "An alist of (NAME . WORLD) cells where NAME is a string, and
+WORLD is a plist. The WORLD plist should contain the following
+keys: :host, :port.")
+
+(defvar muon-profiles nil
+  "An alist of (NAME . PROFILE) cells where NAME is a string, and
+PROFILE is a plist. The PROFILE plist should contain the
+following keys: :login, :password, :world. The :world key should
+either be a string that is a key in MUON-WORLDS or a plist
+containing the keys :host and :port.")
 
 (defvar muon-prompt "MU>"
   "The string displayed as the input prompt in Muon buffers")
@@ -306,7 +315,6 @@
   (make-string 1024 0))
 
 ;;;; World / Profile Functions
-
 (defun muon-get-world (world-name)
   (assoc world-name muon-worlds))
 
