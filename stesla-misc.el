@@ -54,6 +54,14 @@
         gnus-summary-mode-hook message-mode-hook gnus-group-mode-hook
         eshell-mode-hook w3-mode-hook w3m-mode-hook help-modeq erc-mode))
 
+(defun stesla-delete-trailing-whitespace ()
+  "Delete all trailing whitespace in the current buffer."
+  (interactive)
+  (save-excursion
+    (goto-char (point-min))
+    (while (re-search-forward "[\t ]+$" nil t)
+      (delete-region (match-beginning 0) (match-end 0)))))
+
 ;; Automatically pick up changes on the filesystem
 (global-auto-revert-mode 1)
 
