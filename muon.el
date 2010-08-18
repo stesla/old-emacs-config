@@ -94,10 +94,38 @@ containing the keys :host and :port.")
 (define-key muon-mode-map [home] 'muon-bol)
 (define-key muon-mode-map "\C-c\C-a" 'muon-bol)
 
-(defun muon (world-name)
-  (interactive "sWorld: ")
+(defun muon (host port login password)
+  (interactive (muon-read-args))
+  (muon-open host port login password))
+
+(defun muon-read-args ()
+  (let ((arg (prefix-numeric-value current-prefix-arg))
+        host port login password)
+    (case arg
+      ;; M-x
+      (1 (let* ((profile (muon-get-profile (read-string "Profile: "))))
+           (setq host (muon-profile-host profile)
+                 port (muon-profile-port profile)
+                 login (muon-profile-login profile)
+                 password (muon-profile-password profile))))
+
+      ;; C-u M-x
+      (4 (let ((world (muon-get-world (read-string "World: "))))
+           (setq host (muon-world-host world)
+                 port (muon-world-port world))))
+
+      ;; C-u C-u [C-u] M-x
+      ((16 64)
+       (setq host (read-string "Host: ")
+             port (muon-string-to-port (read-string "Port: ")))
+       (unless (= arg 16)
+         (setq login (read-string "Login: ")
+               password (read-passwd "Password: ")))))
+    (list host port login password)))
+
+(defun muon-open (host port login password)
   (let* ((buffer (generate-new-buffer "*muon*"))
-         (process (muon-open-connection buffer (muon-get-world world-name))))
+         (process (muon-open-connection buffer host port)))
     (set-buffer buffer)
 
     ;; Set modes
@@ -122,7 +150,10 @@ containing the keys :host and :port.")
 
     (muon-display-prompt)
 
-    (switch-to-buffer buffer)))
+    (switch-to-buffer buffer)
+
+    (when (and login password)
+      (muon-send-input-line (format "connect %s %s" login password)))))
 
 (defun muon-bol ()
   (interactive)
@@ -229,22 +260,18 @@ containing the keys :host and :port.")
    muon-input-marker
    (muon-end-of-input-line)))
 
-(defun muon-error (&rest args)
-  (if debug-on-error
-      (apply #'error args)
-    (apply #'message args)
-    (beep)))
-
 ;;;; Networking
 
-(defun muon-open-connection (buffer world)
-  (make-network-process :name (concat "muon " (muon-world-name world))
+(defun muon-open-connection (buffer hostname port)
+  (make-network-process :name (concat (muon-connection-buffer-name hostname port))
                         :buffer buffer
                         :coding '(no-conversion . no-conversion)
                         :filter 'muon-insertion-filter
-                        :host (muon-world-host world)
-                        :service (muon-world-port world)))
+                        :host hostname
+                        :service port))
 
+(defun muon-connection-buffer-name (hostname port)
+  (format "muon %s:%d" hostname port))
 
 (defun muon-insertion-filter (proc string)
   (with-current-buffer (process-buffer proc)
@@ -315,17 +342,54 @@ containing the keys :host and :port.")
   (make-string 1024 0))
 
 ;;;; World / Profile Functions
+
+(defun muon-get-profile (profile-name)
+  (assoc profile-name muon-profiles))
+
+(defun muon-profile-host (profile)
+  (let* ((plist (cdr profile))
+         (world (muon-get-world (plist-get plist :world))))
+    (if world
+        (muon-world-host world)
+      (plist-get plist :host))))
+
+(defun muon-profile-port (profile)
+  (let* ((plist (cdr profile))
+         (world (muon-get-world (plist-get plist :world))))
+    (if world
+        (muon-world-port world)
+      (plist-get plist :port))))
+
+(defun muon-profile-login (profile)
+  (plist-get (cdr profile) :login))
+
+(defun muon-profile-password (profile)
+  (plist-get (cdr profile) :password))
+
 (defun muon-get-world (world-name)
   (assoc world-name muon-worlds))
-
-(defun muon-world-name (world)
-  (car world))
 
 (defun muon-world-host (world)
   (plist-get (cdr world) :host))
 
 (defun muon-world-port (world)
   (plist-get (cdr world) :port))
+
+;;;; Misc. Functions
+
+(defun muon-error (&rest args)
+  (if debug-on-error
+      (apply #'error args)
+    (apply #'message args)
+    (beep)))
+
+(defun muon-string-to-port (s)
+  (if (numberp s)
+      s
+    (let ((n (string-to-number s)))
+      (if (= n 0)
+          s
+        n))))
 
 (provide 'muon)
 ;;; muon.el ends here
