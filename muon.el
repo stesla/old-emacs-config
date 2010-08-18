@@ -103,7 +103,7 @@ containing the keys :host and :port.")
         host port login password)
     (case arg
       ;; M-x
-      (1 (let* ((profile (muon-get-profile (read-string "Profile: "))))
+      (1 (let ((profile (muon-get-profile (read-string "Profile: "))))
            (setq host (muon-profile-host profile)
                  port (muon-profile-port profile)
                  login (muon-profile-login profile)
