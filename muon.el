@@ -139,9 +139,10 @@ containing the keys :host and :port.")
     (setq muon-insert-marker (make-marker))
     (setq muon-input-marker (make-marker))
 
-    ;; I'm unsure *why* but if I don't put this in, the READ-ONLY
-    ;; property on the prompt causes KILL-BUFFER to signal a
-    ;; TEXT-READ-ONLY error the first time I call it.
+    ;; If we're doing this on an empty buffer (which we probably are),
+    ;; adding a blank line before the prompt will cause the prompt to
+    ;; move as text arrives, rather than stay at the top of the screen
+    ;; with the text being inserted above the viewable window.
     (goto-char (point-max))
     (forward-line 0)
     (insert "\n")
@@ -267,6 +268,7 @@ containing the keys :host and :port.")
                         :buffer buffer
                         :coding '(no-conversion . no-conversion)
                         :filter 'muon-insertion-filter
+                        :sentinel 'muon-sentinel
                         :host hostname
                         :service port))
 
@@ -284,6 +286,13 @@ containing the keys :host and :port.")
                 do (muon-telnet-process proc x))
           (set-marker (process-mark proc) (point)))
         (if moving (goto-char (process-mark proc)))))))
+
+(defun muon-sentinel (proc event)
+  (with-current-buffer (process-buffer proc)
+    (save-excursion
+      (muon-display-line event)
+      (let ((inhibit-read-only t))
+        (delete-region (marker-position muon-insert-marker) (point-max))))))
 
 ;; (defconst muon-se 240)
 ;; (defconst muon-nop 241)
