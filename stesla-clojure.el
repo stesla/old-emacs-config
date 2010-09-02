@@ -27,5 +27,19 @@
 (add-to-list 'load-path (concat dotfiles-dir "clojure-mode"))
 (require 'clojure-mode)
 
+(defun lein-swank ()
+  (interactive)
+  (let ((root (locate-dominating-file default-directory "project.clj")))
+    (when (not root)
+      (error "Not in a Leiningen project."))
+    (shell-command (format "cd %s && lein swank %s &" root stesla-swank-port)
+                   "*lein-swank*")
+    (set-process-filter (get-buffer-process "*lein-swank*")
+                        (lambda (process output)
+                          (when (string-match "Connection opened on" output)
+                            (slime-connect "localhost" stesla-swank-port)
+                            (set-process-filter process nil))))
+    (message "Starting swank server...")))
+
 (provide 'stesla-clojure)
 ;;; stesla-clojure.el ends here

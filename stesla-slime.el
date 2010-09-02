@@ -24,7 +24,13 @@
 
 ;;; Code:
 
+(add-to-list 'load-path (concat dotfiles-dir "slime"))
+(require 'slime)
+(slime-setup '(slime-repl))
 
+(setq slime-protocol-version 'ignore)
+
+(defvar stesla-slime-port 4005)
 
 (provide 'stesla-slime)
 ;;; stesla-slime.el ends here
