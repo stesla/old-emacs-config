@@ -24,7 +24,8 @@
 
 ;;; Code:
 
-
+(add-to-list 'load-path (concat dotfiles-dir "clojure-mode"))
+(require 'clojure-mode)
 
 (provide 'stesla-clojure)
 ;;; stesla-clojure.el ends here
