@@ -48,6 +48,8 @@
 (require 'stesla-yasnippet)
 (require 'stesla-auto)
 (require 'stesla-elisp)
+(require 'stesla-slime)
+(require 'stesla-clojure)
 
 (load custom-file 'noerror)
 
