@@ -30,7 +30,5 @@
 
 (setq slime-protocol-version 'ignore)
 
-(defvar stesla-swank-port 4005)
-
 (provide 'stesla-slime)
 ;;; stesla-slime.el ends here
