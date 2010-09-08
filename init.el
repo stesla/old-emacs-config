@@ -50,6 +50,8 @@
 (require 'stesla-elisp)
 (require 'stesla-slime)
 (require 'stesla-clojure)
+(require 'stesla-git)
+
 
 (load custom-file 'noerror)
 

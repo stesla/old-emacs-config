@@ -4,3 +4,6 @@
 [submodule "slime"]
 	path = slime
 	url = git@github.com:stesla/slime.git
+[submodule "magit"]
+	path = magit
+	url = git://github.com/philjackson/magit.git
