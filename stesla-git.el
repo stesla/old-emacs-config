@@ -27,5 +27,9 @@
 (add-to-list 'load-path (concat dotfiles-dir "magit"))
 (require 'magit)
 
+(add-to-list 'load-path (concat dotfiles-dir "mo-git-blame"))
+(autoload 'mo-git-blame-file "mo-git-blame" nil t)
+(autoload 'mo-git-blame-current "mo-git-blame" nil t)
+
 (provide 'stesla-git)
 ;;; stesla-git.el ends here
