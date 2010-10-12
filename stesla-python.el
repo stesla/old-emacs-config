@@ -36,4 +36,14 @@
   ;; Automatically save project python buffers before refactorings
   (setq ropemacs-confirm-saving 'nil))
 
+(defun stesla-python-find-callers ()
+  "Using PYTHON-WHICH-FUNC, determine the current function, and then run GREP-FIND to determine callsites of that function"
+  (interactive)
+  (let ((func (car (last (split-string (python-which-func) "[.]")))))
+    (grep-find (concat "find . -type f -print0 | xargs -0 -e grep -nH -e "
+                       "'\\b" func "('"))))
+
+(eval-after-load 'python
+  '(define-key python-mode-map (kbd "\C-c f") 'stesla-python-find-callers))
+
 (provide 'stesla-python)
