@@ -13,3 +13,6 @@
 [submodule "muon"]
 	path = muon
 	url = git@github.com:stesla/muon.git
+[submodule "samuel"]
+	path = samuel
+	url = saffron:var/git/emacs-samuel.git
