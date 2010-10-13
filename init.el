@@ -53,8 +53,10 @@
 (require 'stesla-git)
 (require 'stesla-objection)
 
-
 (load custom-file 'noerror)
+
+;; We don't want a FQDN for system-name, just the hostname portion
+(setq system-name (car (split-string system-name "[.]")))
 
 ;; System- and User-specific customizations
 (setq system-specific-config (concat dotfiles-dir system-name ".el")
