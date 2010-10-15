@@ -44,6 +44,21 @@
                        "'\\b" func "('"))))
 
 (eval-after-load 'python
-  '(define-key python-mode-map (kbd "\C-c f") 'stesla-python-find-callers))
+  '(progn
+     (define-key python-mode-map (kbd "\C-c f") 'stesla-python-find-callers)
+     (add-hook 'python-mode-hook 'flymake-mode)))
+
+(eval-after-load 'flymake
+  '(progn
+     (defun flymake-pylint-init ()
+       (let* ((temp-file (flymake-init-create-temp-buffer-copy
+                          'flymake-create-temp-inplace))
+              (local-file (file-relative-name
+                           temp-file
+                           (file-name-directory buffer-file-name))))
+         (list "epylint" (list local-file))))
+     (add-to-list 'flymake-allowed-file-name-masks
+                  '("\\.py\\'" flymake-pylint-init))))
+
 
 (provide 'stesla-python)
