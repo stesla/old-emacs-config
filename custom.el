@@ -36,3 +36,7 @@
   ;; Your init file should contain only one such instance.
   ;; If there is more than one, they won't work right.
  '(smerge-refined-change ((t (:background "dark red")))))
+
+;; Enabled functions
+(put 'upcase-region 'disabled nil)
+(put 'narrow-to-region 'disabled nil)
