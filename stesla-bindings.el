@@ -20,7 +20,7 @@
 ;;; Code:
 
 (dolist (b `((,(kbd "C-c l") goto-line)
-             (,(kbd "C-c r") compile)))
+             (,(kbd "C-c c") compile)))
   (global-set-key (car b) (cadr b)))
 
 (dolist (r `((?. (file . ,(concat dotfiles-dir "init.el")))
