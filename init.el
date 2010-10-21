@@ -52,6 +52,7 @@
 (require 'stesla-clojure)
 (require 'stesla-git)
 (require 'stesla-objection)
+(require 'stesla-go)
 
 (load custom-file 'noerror)
 
