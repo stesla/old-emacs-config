@@ -53,6 +53,7 @@
 (require 'stesla-git)
 (require 'stesla-objection)
 (require 'stesla-go)
+(require 'stesla-org)
 
 (load custom-file 'noerror)
 
