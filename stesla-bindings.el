@@ -20,11 +20,18 @@
 ;;; Code:
 
 (dolist (b `((,(kbd "C-c l") goto-line)
-             (,(kbd "C-c c") compile)))
+             (,(kbd "C-c c") compile)
+             (,(kbd "C-c #") stesla-word-count)))
   (global-set-key (car b) (cadr b)))
 
 (dolist (r `((?. (file . ,(concat dotfiles-dir "init.el")))
              (?b (file . ,(concat dotfiles-dir "stesla-bindings.el")))))
   (set-register (car r) (cadr r)))
+
+(defun stesla-word-count ()
+  (interactive)
+  (if current-prefix-arg
+      (shell-command "cat session*.tex | wc -w")
+    (shell-command-on-region (point-min) (point-max) "wc -w")))
 
 (provide 'stesla-bindings)
