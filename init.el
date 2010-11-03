@@ -54,6 +54,7 @@
 (require 'stesla-objection)
 (require 'stesla-go)
 (require 'stesla-org)
+(require 'stesla-words)
 
 (load custom-file 'noerror)
 
