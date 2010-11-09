@@ -63,7 +63,8 @@
     (force-mode-line-update)))
 
 (defun stesla-word-count-in-region (start end)
-  (save-match-data
-    (how-many "\\w+" start end)))
+  (length
+   (split-string
+    (buffer-substring-no-properties start end))))
 
 (provide 'stesla-words)
