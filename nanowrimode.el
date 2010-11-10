@@ -19,7 +19,7 @@
 
 ;;; Code:
 
-(defvar nanowrimode-line " NaNo:?")
+(defvar nanowrimode-line " NaNo")
 (make-variable-buffer-local 'nanowrimode-line)
 
 (defvar nanowrimode-map
@@ -27,13 +27,19 @@
     (define-key map (kbd "C-c #") 'nanowrimode-count)
     map))
 
+(defvar nanowrimode-count 0)
+(make-variable-buffer-local 'nanowrimode-count)
 (defvar nanowrimode-count-command-history '("cat * | wc -w"))
 (defun nanowrimode-count ()
   (interactive)
-  (shell-command
-   (read-shell-command "Command: "
-                       (car nanowrimode-count-command-history)
-                       '(nanowrimode-count-command-history . 1))))
+  (let* ((command (read-shell-command "Command: "
+                                      (car nanowrimode-count-command-history)
+                                      '(nanowrimode-count-command-history . 1)))
+         (count (string-to-number (shell-command-to-string command))))
+    (setq nanowrimode-count count)
+    (put 'nanowrimode-count 'currentp t)
+    (message (format "%d" count))
+    (nanowrimode-update-mode-line)))
 
 (define-minor-mode nanowrimode
   "A mode for counting words"
@@ -53,12 +59,21 @@
   (remove-hook 'after-change-functions 'nanowrimode-after-change-function t))
 
 (defun nanowrimode-after-change-function (start stop len)
+  (put 'nanowrimode-count 'currentp nil)
   (nanowrimode-update-mode-line))
 
+(defun nanowrimode-daily-goal ()
+  (let ((day (string-to-number (format-time-string "%d" (current-time)))))
+    (- (* day 1667) (/ day 3))))
+
 (defun nanowrimode-update-mode-line ()
-  (let ((count (nanowrimode-words-in-region (point-min) (point-max))))
-    (setq nanowrimode-line (format " NaNo:%d" count))
-    (force-mode-line-update)))
+  (setq nanowrimode-line
+        (format " NaNo(%d:%d%s:%d)"
+                (nanowrimode-words-in-region (point-min) (point-max))
+                nanowrimode-count
+                (if (get 'nanowrimode-count 'currentp) "" "*")
+                (nanowrimode-daily-goal)))
+  (force-mode-line-update))
 
 (defun nanowrimode-words-in-region (start end)
   (length
