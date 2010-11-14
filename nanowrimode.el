@@ -62,8 +62,8 @@
   (put 'nanowrimode-count 'currentp nil)
   (nanowrimode-update-mode-line))
 
-(defun nanowrimode-daily-goal ()
-  (let ((day (string-to-number (format-time-string "%d" (current-time)))))
+(defun nanowrimode-daily-goal (&optional day)
+  (let ((day (or day (string-to-number (format-time-string "%d" (current-time))))))
     (- (* day 1667) (/ day 3))))
 
 (defun nanowrimode-update-mode-line ()
