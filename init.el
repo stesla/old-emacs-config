@@ -54,7 +54,7 @@
 (require 'stesla-objection)
 (require 'stesla-go)
 (require 'stesla-org)
-(require 'stesla-cedet)
+(require 'stesla-ecb)
 (require 'nanowrimode)
 
 (load custom-file 'noerror)
