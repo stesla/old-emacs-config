@@ -56,6 +56,7 @@
 (require 'stesla-org)
 (require 'stesla-ecb)
 (require 'nanowrimode)
+(require 'stesla-caml)
 
 (load custom-file 'noerror)
 
