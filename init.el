@@ -30,7 +30,6 @@
 (add-to-list 'load-path dotfiles-dir)
 
 (setq autoload-file (concat dotfiles-dir "loaddefs.el"))
-(setq custom-file (concat dotfiles-dir "custom.el"))
 
 ;; Load commonly used packages
 (require 'cl)
@@ -57,8 +56,6 @@
 (require 'stesla-ecb)
 (require 'nanowrimode)
 (require 'stesla-caml)
-
-(load custom-file 'noerror)
 
 ;; We don't want a FQDN for system-name, just the hostname portion
 (setq system-name (car (split-string system-name "[.]")))
