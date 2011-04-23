@@ -98,4 +98,7 @@
 
 (setq x-select-enable-clipboard t)
 
+(put 'upcase-region 'disabled nil)
+(put 'narrow-to-region 'disabled nil)
+
 (provide 'stesla-misc)
