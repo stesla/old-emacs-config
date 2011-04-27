@@ -53,7 +53,6 @@
 (require 'stesla-objection)
 (require 'stesla-go)
 (require 'stesla-org)
-(require 'stesla-ecb)
 (require 'nanowrimode)
 (require 'stesla-caml)
 (require 'stesla-haskell)
