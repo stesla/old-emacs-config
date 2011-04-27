@@ -1,4 +1,4 @@
-;;; stesla-caml.el --- OCaml customizations
+;;; stesla-haskell.el -- Haskell customizations
 
 ;; Copyright (C) 2010  Samuel Tesla
 
@@ -19,12 +19,12 @@
 
 ;;; Code:
 
-(add-to-list 'load-path (concat dotfiles-dir "tuareg-2.0.4"))
+(defconst haskell-dir (concat dotfiles-dir "haskellmode-emacs-2.7.0/"))
+(add-to-list 'load-path haskell-dir)
 
-(add-to-list 'auto-mode-alist '("\\.ml[iylp]?" . tuareg-mode))
-(autoload 'tuareg-mode "tuareg" "Major mode for editing Caml code" t)
-(autoload 'camldebug "camldebug" "Run the Caml debugger" t)
-(dolist (ext '(".cmo" ".cmx" ".cma" ".cmxa" ".cmi"))
-  (add-to-list 'completion-ignored-extensions ext))
+(load (concat haskell-dir "haskell-site-file"))
 
-(provide 'stesla-caml)
+(add-hook 'haskell-mode-hook 'turn-on-haskell-doc-mode)
+(add-hook 'haskell-mode-hook 'turn-on-haskell-indentation)
+
+(provide 'stesla-haskell)
