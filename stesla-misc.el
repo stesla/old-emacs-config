@@ -92,9 +92,10 @@
 (defalias 'yes-or-no-p 'y-or-n-p)
 (random t) ;; Seed the random-number generator
 
-;; Don't clutter up directories with files~
-(setq backup-directory-alist `(("." . ,(expand-file-name
-                                        (concat dotfiles-dir "backups")))))
+;; Don't clutter up directories with files~ or #files#
+(let ((backup-dir (expand-file-name (concat dotfiles-dir "backups/"))))
+  (setq backup-directory-alist `((".*" . ,backup-dir)))
+  (setq auto-save-file-name-transforms `((".*" ,backup-dir t))))
 
 (setq x-select-enable-clipboard t)
 
