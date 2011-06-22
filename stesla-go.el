@@ -26,5 +26,7 @@
 
 (require 'go-mode-load)
 
+(add-hook 'go-mode-hook (lambda () (setq tab-width 4)))
+
 (provide 'stesla-go)
 ;;; stesla-go.el ends here
