@@ -57,6 +57,7 @@
 (require 'stesla-caml)
 (require 'stesla-haskell)
 (require 'stesla-javascript)
+(require 'stesla-erlang)
 
 ;; We don't want a FQDN for system-name, just the hostname portion
 (setq system-name (car (split-string system-name "[.]")))
