@@ -26,5 +26,13 @@
 
 (add-hook 'haskell-mode-hook 'turn-on-haskell-doc-mode)
 (add-hook 'haskell-mode-hook 'turn-on-haskell-indentation)
+(add-hook 'haskell-mode-hook 'haskell-style)
+
+(defun haskell-style ()
+  (interactive)
+  (setq tab-width 4
+        haskell-indentation-layout-offset 4
+        haskell-indentation-left-offset 4
+        haskell-indentation-ifte-offset 4))
 
 (provide 'stesla-haskell)
